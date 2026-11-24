@@ -49,9 +49,7 @@ test("the release build scripts parse", () => {
   for (const script of [
     "scripts/build-native.sh",
     "scripts/native-in-container.sh",
-    "scripts/build-release.sh",
     "scripts/build-native-macos.sh",
-    "scripts/build-release-macos.sh",
   ]) {
     const result = spawnSync("bash", ["-n", script], { cwd: repoRoot, encoding: "utf8" });
     assert.equal(result.status, 0, `${script}: ${result.stderr}`);

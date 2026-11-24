@@ -8,12 +8,12 @@ they're fully tested (see "Keeping it up to date").
 
 The first signed release, v0.4.0, is published and was tested end to end on a fresh home folder:
 `install-cli.sh`, `hive setup`, `hive doctor`, a real run, `hive update --check` and `hive serve`.
-Stable releases are now signed keyless in CI by `.github/workflows/release.yml`; no release key
-lives on any machine, and `docs/RELEASING.md` has the steps for the next release.
+The release workflow and its signing keys have since been removed from this fork; the notes below
+are kept for reference.
 
-- **Release build** (`scripts/build-release.sh`): an app bundle containing `bin/hive`, a bundled
-  Node, the `hive-vm` launcher and the CLI as one bundled file. The VM filesystem (rootfs) ships as
-  a separate download. A `SHA256SUMS` file covers both and is signed with an ed25519 release key.
+- **Release build** *(removed from this fork)*: an app bundle containing `bin/hive`, a bundled
+  Node, the `hive-vm` launcher and the CLI as one bundled file. The VM filesystem (rootfs) shipped
+  as a separate download, and a `SHA256SUMS` file covered both.
 - **`install-cli.sh`:** installs the latest release into
   `~/.local/share/agent-hive/versions/<version>`, links `~/.local/bin/hive`, then runs
   `hive setup`.

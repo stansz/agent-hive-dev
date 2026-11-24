@@ -17,28 +17,14 @@ A tool that runs [pi](https://pi.dev) on a repo inside a throwaway microVM.
 
 ## Working in this repo
 
-- **The repo lives in the `Old-GenS` organization; both maintainer accounts are its owners.**
-- **`main` takes no direct pushes, from anyone.** The `main` ruleset requires a pull request plus
-  the `test`, `vm` and `windows-installer` checks, and blocks force-pushes and deletion. There is
-  **no bypass list**. Pull requests need no approval — the checks are the gate — and merge through
-  GitHub's auto-merge, always as a merge commit (the repo allows no squash or rebase merging, so a
-  merged branch keeps its commit SHAs and local `main` only ever fast-forwards).
-- **Doing that without leaving a mess:**
-  1. Start from GitHub's `main`: `git fetch origin && git switch -c <short-branch-name> origin/main`.
-  2. Commit only on that branch. **Never commit on local `main`.**
-  3. `git push -u origin <branch>` and open the pull request (`gh pr create --base main`), then
-     merge it yourself once the checks pass.
-  4. **Clean up in the same breath:** `git switch main && git pull --ff-only`, then
-     `git branch -d <branch>` (and `git push origin --delete <branch>` if GitHub still has it).
-     `git branch` must show only `main` before the next change starts.
-  5. **A branch whose pull request has merged is finished.** Never commit to it or push it again —
-     a push to a deleted branch name recreates it with no pull request, and that work silently
-     never merges. Start the next change from `main`.
-- **Update local `main` with `git pull --ff-only`** (or VS Code's Sync, which is the same thing when
-  there is nothing to push). Set it once per clone: `git config pull.ff only`. If it refuses, a
-  commit slipped onto local `main`; move it to a branch rather than merging.
-- **Never rewrite `main`'s history:** no force-push, no rebase or reset of commits that are already
-  on GitHub.
+- **This checkout is `stansz/agent-hive-dev`, a fork with nothing guarding it.** No ruleset, no
+  required status checks, no CODEOWNERS, no CI, no release workflow. Commit on `main` and
+  `git push origin main` — that is the whole process.
+- **The upstream repo (`Old-GenS/agent-hive`) still has its own ruleset.** That is upstream's
+  business, not ours. Don't push there.
+- **Set `git config pull.ff only` once per clone** so a pull can only fast-forward.
+- **Never rewrite history that is already pushed:** no force-push, no rebase or reset of published
+  commits. That is the only rule worth keeping here, because it is the only one that loses work.
 
 ## Layout
 
@@ -80,8 +66,7 @@ A tool that runs [pi](https://pi.dev) on a repo inside a throwaway microVM.
 | `image/` | The sandbox image: pi (pinned `PI_VERSION`), `hive-agent` (runs pi), `hive-export` (format-patch), `hive-vm-init` (libkrun guest init), `hive-netd` (guest TCP → vsock relay, macOS) |
 | `vm/` | libkrun backend: `hive-vm.c` (launcher), `build.sh` (ad-hoc signs on macOS), `hive-vm.entitlements`, `build-rootfs.sh` |
 | `ui/` | Vite + vanilla TS web UI, built to `ui/dist`: `main.ts` (Runs: form, timeline, result; Settings: API keys, Runs, This computer), `bee.ts` (the run indicator), `util.ts` (`el()`, `esc()`, `api()`), `app.css` (light and dark tokens) |
-| `.github/workflows/` | CI and the update automation: `ci.yml` (`npm test` on Linux and macOS, plus a real microVM smoke test on `pull_request` and `push`), `bump.yml` (daily check for upstream pin updates, one pull request per component), `dependabot-automerge.yml` (enables GitHub's auto-merge on Dependabot's PRs), `nightly.yml` (daily signed nightly prerelease, reusing the tested rootfs when it is current), `macos-image.yml` (the arm64 macOS VM image, built and inspected on an arm64 runner, and reusable), `macos-release.yml` (a manual macOS bundle build on `macos-15`, uploading a test artifact); `.github/dependabot.yml` groups npm and Actions updates onto `main`. Merging is GitHub's auto-merge, driven by the `main` ruleset's required checks; no custom merge workflow |
-| `scripts/` | `run-tests.mjs` (test runner with a throwaway `TMPDIR`), `ui-smoke.mjs` (headless browser check with a faked run), `build-native.sh` (libkrun, libkrunfw and the hardened launcher for Linux releases), `native-in-container.sh` (its manylinux_2_28 half), `build-native-macos.sh` (the macOS arm64 dylibs, launcher and signatures), `build-release-macos.sh` (the darwin bundle, image and sources), `build-rootfs-image.sh` and `rootfs-image.mjs` (the macOS arm64 VM image and its naming), `macos-smoke.mjs` (real-VM isolation check on a Mac), `kernel-remote.mjs` (libkrunfw's kernel URL without GNU make), release build and signing |
+| `scripts/` | `run-tests.mjs` (test runner with a throwaway `TMPDIR`), `ui-smoke.mjs` (headless browser check with a faked run), `build-native.sh` (libkrun, libkrunfw and the hardened launcher for Linux), `native-in-container.sh` (its manylinux_2_28 half), `build-native-macos.sh` (the macOS arm64 dylibs, launcher and signatures), `build-rootfs-image.sh` and `rootfs-image.mjs` (the macOS arm64 VM image and its naming), `macos-smoke.mjs` (real-VM isolation check on a Mac), `kernel-remote.mjs` (libkrunfw's kernel URL without GNU make) |
 | `scripts/check-updates.mjs` | The daily bump check: newest upstream version of every pin in `versions.json` and `image/Containerfile` (`--list` as JSON, `--apply <component>`); pure parsers and `applyUpdate` are exported for tests |
 | `scripts/rootfs-plan.mjs` | The nightly build's rootfs reuse decision (`decide()`): rebuild on a forced build, no previous rootfs, an `image/` tree change, pending security updates, or 14+ days old with updates; else reuse |
 | `scripts/release-rootfs.mjs` | The rootfs checks shared by the release build and the release workflow: the tarball name, its `rootfs-info.json` rootfs id and `imageTree` must agree with the release's `image/` tree. It is also the one place release numbering lives: the next nightly previews the patch after the newest release (`nextNightlyVersion`), a stable release is the next patch (`nextStableVersion`), and the newest release is found by version, a stable release winning a tie with its own nightly (`newestRelease`, `compareVersions`); both workflows call it |
@@ -97,8 +82,8 @@ backend also `npm run build:vm` and `npm run build:rootfs`; on arm64 Linux, `npm
 makes the macOS VM image. For release-grade Linux native builds (libkrun, libkrunfw and the
 old-glibc launcher) use `scripts/build-native.sh`, which runs inside the pinned manylinux
 container from `versions.json`. On Apple silicon, `scripts/build-native-macos.sh` builds and signs
-the arm64 native pieces, `npm run smoke:macos` checks the real VM's isolation, and
-`scripts/build-release-macos.sh` builds the darwin release. Run the tests with `npm test`.
+the arm64 native pieces and `npm run smoke:macos` checks the real VM's isolation. Run the tests
+with `npm test`.
 
 ## Security model — keep these invariants
 
@@ -234,18 +219,12 @@ applied without a restart; This computer, with the checks, a live Resources sect
 limits). First-run onboarding (`#setup`). Checked by
 `scripts/ui-smoke.mjs`.
 
-**Done, releases and updates:** signed releases with bundled libkrun, libkrunfw, the hardened
-launcher and a static pasta fallback (old glibc, so Ubuntu 20.04+, Debian 11+, RHEL 8+, Mint, WSL);
-the Windows one-line installer (`install.ps1`: a dedicated WSL2 Ubuntu distro, `hive.cmd` on the
-Windows `PATH`, guide in `docs/WINDOWS.md`), in daily use on a real Windows 11 machine;
-`install-cli.sh` VM-filesystem download progress and KVM/pasta/PATH advice; `hive update` with
-rollback; a nightly channel signed by a separate CI prerelease key; `.github/workflows/release.yml`
-builds the next patch of main, boots that bundle and rootfs in a real VM, signs it keyless and
-publishes it — the dispatch form has no fields, nothing is bumped and nothing is copied between
-workflows; CI that boots a real VM for every change
-and parses/analyses `install.ps1`; a daily check that
-opens tested pin-bump PRs; Dependabot; a daily nightly prerelease (`.github/workflows/`,
-`docs/RELEASING.md`).
+**Releases (automation removed in this fork):** `install.ps1` (the Windows one-line installer: a
+dedicated WSL2 Ubuntu distro, `hive.cmd` on the Windows `PATH`, guide in `docs/WINDOWS.md`),
+`install-cli.sh` (VM-filesystem download progress, KVM/pasta/PATH advice) and `hive update` with
+rollback still exist. What is gone: every workflow, the nightly channel, Dependabot, the release
+and signing scripts, `CODEOWNERS` and `docs/RELEASING.md`. There is no CI, and nothing checks a
+signature unless you build and sign a bundle yourself.
 
 **Not built yet:**
 - server: refusing to restart, or finishing runs first, while runs are in progress

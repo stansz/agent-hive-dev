@@ -61,5 +61,5 @@ hive also tells you once a day, when you run it, if a newer release is out.
 - **Windows:** the `agent-hive` WSL distro gets Ubuntu's automatic security updates while it runs;
   WSL itself updates through the Microsoft Store (`wsl --update`).
 
-Details for maintainers (the workflows, keys and cutting a release) are in
-[RELEASING.md](RELEASING.md).
+There is no release automation in this fork: no workflows, no signing keys, no nightly channel.
+Build locally from source.

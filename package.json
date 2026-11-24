@@ -20,9 +20,7 @@
     "build:rootfs": "bash vm/build-rootfs.sh",
     "build:rootfs-image": "bash scripts/build-rootfs-image.sh",
     "build:native:macos": "bash scripts/build-native-macos.sh",
-    "release:macos": "bash scripts/build-release-macos.sh",
     "smoke:macos": "node scripts/macos-smoke.mjs",
-    "release": "bash scripts/build-release.sh",
     "test": "npm run build && node scripts/run-tests.mjs",
     "start": "node dist/index.js",
     "dev": "tsc --watch & node --watch dist/index.js"

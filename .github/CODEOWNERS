@@ -1,5 +1,0 @@
-# Changes here change what a release is: this file names the workflow that signs, and the
-# workflow itself decides what gets signed. A pull request touching either needs @stansz to
-# approve it, so a token that can push cannot alter the signer on its own.
-/.github/workflows/  @stansz
-/.github/CODEOWNERS  @stansz

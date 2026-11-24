@@ -110,27 +110,15 @@ HIVE_ROOTFS=/path/to/hive-rootfs-<id>-linux-arm64.img \
 npm run smoke:macos
 ```
 
-### Build the release bundle
+### Build a bundle yourself
 
-The release bundle is what an installed copy runs. Build it with the same image (see
-[RELEASING.md](RELEASING.md)). Stable **Linux** releases are signed keyless by the `release.yml`
-workflow; the macOS bundle has no keyless workflow yet, so it is still signed locally:
+The release pipeline — workflows, signing keys and the bundle scripts — has been removed from this
+fork, so there is no signed release to download and nothing here is signature-checked. An installed
+copy runs a bundle built from source: the built server (`npm run build`), the UI
+(`npm run build:ui`) and the arm64 image from `npm run build:rootfs-image`, assembled by hand.
 
-```bash
-node scripts/keygen.mjs /tmp/hive-release-key.pem   # if you don't already have a key
-HIVE_SIGNING_KEY=/tmp/hive-release-key.pem \
-  bash scripts/build-release-macos.sh \
-  --rootfs-image /path/to/hive-rootfs-<id>-linux-arm64.img.gz
-```
-
-The result is `release/<version>/hive-<version>-darwin-arm64.tar.gz` plus the image, GPL source
-and a signed `SHA256SUMS`. The `macos-release` workflow builds and checks the same bundle on
-GitHub's `macos-15` runners and uploads it as a workflow artifact; it cannot boot
-Hypervisor.framework there, so boot it on a Mac.
-
-> **Not yet published:** `install-cli.sh` already selects the macOS arm64 asset on Apple silicon,
-> but there is no stable macOS release to download yet. Until one is published, build from source
-> as above.
+> **Not published:** `install-cli.sh` still selects a macOS arm64 asset on Apple silicon, but
+> there is no macOS release to download. Build from source.
 
 The bundles are **ad-hoc signed, not notarized**. On your own Mac that is enough; if macOS
 quarantines a downloaded bundle and refuses to start it, allow it under **System Settings › Privacy
